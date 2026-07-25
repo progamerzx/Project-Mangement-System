@@ -6,6 +6,9 @@ pipeline{
     }
 
     stages{
+        stage('Checkout'){
+            checkout scm
+        }
         stage('Build Docker Image'){
             steps{
                 bat "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
