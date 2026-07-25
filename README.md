@@ -6,7 +6,6 @@ ProjectFlow is a modern, web-based **Project Management System (PMS)** built wit
 
 ## 📸 Screenshots
 
-*(Placeholders: Add your application & pipeline screenshots here)*
 
 | Application Dashboard | Jenkins CI/CD Pipeline |
 | :---: | :---: |
