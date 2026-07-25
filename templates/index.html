@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+
+{% block title %}Dashboard - ProjectFlow{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12">
+        <h1 class="fw-bold mb-1">Workspace Dashboard</h1>
+        <p class="text-secondary">Track, update, and manage your team's projects and tasks</p>
+    </div>
+</div>
+
+<!-- Stats Counter Rows -->
+<div class="row g-4 mb-5">
+    <div class="col-6 col-md-3">
+        <div class="glass-card stat-card">
+            <div class="stat-value text-gradient-blue">{{ stats.project_count }}</div>
+            <div class="stat-label">Projects</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card stat-card">
+            <div class="stat-value text-gradient-orange">{{ stats.task_stats['To Do'] }}</div>
+            <div class="stat-label">To Do</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card stat-card">
+            <div class="stat-value text-gradient-blue">{{ stats.task_stats['In Progress'] }}</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="glass-card stat-card">
+            <div class="stat-value text-gradient-purple">{{ stats.task_stats['Done'] }}</div>
+            <div class="stat-label">Done</div>
+        </div>
+    </div>
+</div>
+
+<!-- Projects Section -->
+<div class="row g-4">
+    <!-- Projects List -->
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 fw-semibold mb-0">Active Projects</h2>
+            <span class="badge bg-secondary-subtle text-white px-3 py-2 rounded-pill">{{ projects|length }} Projects</span>
+        </div>
+
+        {% if projects %}
+            <div class="row g-4">
+                {% for project in projects %}
+                    <div class="col-md-6">
+                        <div class="glass-card p-4 h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <h3 class="h5 fw-bold mb-2 text-gradient-blue">{{ project.name }}</h3>
+                                <p class="text-secondary small mb-3">
+                                    {% if project.description %}
+                                        {{ project.description }}
+                                    {% else %}
+                                        No description provided.
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary-subtle">
+                                <span class="text-secondary small">
+                                    <i class="bi bi-calendar-event me-1"></i> Created on {{ project.created_at.strftime('%Y-%m-%d') if project.created_at else 'Unknown' }}
+                                </span>
+                                <a href="{{ url_for('project_detail', project_id=project.id) }}" class="btn btn-primary btn-sm">
+                                    Manage <i class="bi bi-arrow-right-short ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="glass-card p-5 text-center my-4">
+                <i class="bi bi-box-seam display-3 text-secondary mb-3"></i>
+                <h3 class="fw-semibold">No Projects Found</h3>
+                <p class="text-secondary mb-4">Create your first project to start managing tasks and tracking progress.</p>
+                <button class="btn btn-primary" onclick="document.getElementById('projectNameInput').focus();">
+                    <i class="bi bi-plus-lg me-1"></i> Create Project
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Create Project Sidebar Form -->
+    <div class="col-lg-4">
+        <div class="glass-card p-4">
+            <h3 class="h4 fw-bold mb-4 text-gradient-purple">
+                <i class="bi bi-folder-plus me-2"></i>New Project
+            </h3>
+            <form action="{{ url_for('add_project') }}" method="POST">
+                <div class="mb-3">
+                    <label for="projectNameInput" class="form-label text-secondary small">Project Name *</label>
+                    <input type="text" class="form-control" id="projectNameInput" name="name" placeholder="Enter project name" required>
+                </div>
+                <div class="mb-4">
+                    <label for="projectDescInput" class="form-label text-secondary small">Description</label>
+                    <textarea class="form-control" id="projectDescInput" name="description" rows="4" placeholder="Briefly describe project goal"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">
+                    <i class="bi bi-plus-circle me-1"></i> Create Project
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

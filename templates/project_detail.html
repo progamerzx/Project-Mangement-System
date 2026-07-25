@@ -1,0 +1,236 @@
+{% extends 'layout.html' %}
+
+{% block title %}{{ project.name }} - ProjectFlow{% endblock %}
+
+{% block content %}
+<!-- Header Navigation Back -->
+<div class="row mb-4">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('index') }}" class="text-secondary text-decoration-none"><i class="bi bi-chevron-left"></i> Dashboard</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">{{ project.name }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<!-- Project Overview Card -->
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <div class="glass-card p-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+            <div>
+                <h1 class="fw-bold text-gradient-blue mb-2">{{ project.name }}</h1>
+                <p class="text-secondary mb-0">
+                    {% if project.description %}
+                        {{ project.description }}
+                    {% else %}
+                        No description provided.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                    <i class="bi bi-plus-lg me-1"></i> Add Task
+                </button>
+                <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteProjectModal">
+                    <i class="bi bi-trash3 me-1"></i> Delete Project
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kanban Columns -->
+<div class="row g-4">
+    <!-- TO DO Column -->
+    <div class="col-lg-4">
+        <div class="kanban-col">
+            <div class="kanban-header">
+                <span class="d-flex align-items-center">
+                    <span class="badge badge-todo me-2 rounded-circle">&nbsp;</span> To Do
+                </span>
+                <span class="badge bg-secondary-subtle text-white">{{ todo_tasks|length }}</span>
+            </div>
+            
+            {% if todo_tasks %}
+                {% for task in todo_tasks %}
+                    <div class="task-card">
+                        <div class="task-title">{{ task.title }}</div>
+                        {% if task.description %}
+                            <p class="task-desc">{{ task.description }}</p>
+                        {% endif %}
+                        <div class="task-meta">
+                            <span>
+                                <i class="bi bi-calendar3 me-1"></i> {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date' }}
+                            </span>
+                            <form action="{{ url_for('change_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="project_id" value="{{ project.id }}">
+                                <input type="hidden" name="status" value="In Progress">
+                                <button type="submit" class="btn btn-link p-0 text-gradient-blue text-decoration-none small" title="Move to In Progress">
+                                    Start <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4 text-secondary small">
+                    No tasks in To Do
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- IN PROGRESS Column -->
+    <div class="col-lg-4">
+        <div class="kanban-col">
+            <div class="kanban-header">
+                <span class="d-flex align-items-center">
+                    <span class="badge badge-progress me-2 rounded-circle">&nbsp;</span> In Progress
+                </span>
+                <span class="badge bg-secondary-subtle text-white">{{ inprogress_tasks|length }}</span>
+            </div>
+
+            {% if inprogress_tasks %}
+                {% for task in inprogress_tasks %}
+                    <div class="task-card">
+                        <div class="task-title">{{ task.title }}</div>
+                        {% if task.description %}
+                            <p class="task-desc">{{ task.description }}</p>
+                        {% endif %}
+                        <div class="task-meta">
+                            <span>
+                                <i class="bi bi-calendar3 me-1"></i> {{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'No due date' }}
+                            </span>
+                            <div class="d-flex gap-2">
+                                <form action="{{ url_for('change_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="project_id" value="{{ project.id }}">
+                                    <input type="hidden" name="status" value="To Do">
+                                    <button type="submit" class="btn btn-link p-0 text-secondary text-decoration-none small" title="Move to To Do">
+                                        <i class="bi bi-chevron-left"></i> Undo
+                                    </button>
+                                </form>
+                                <form action="{{ url_for('change_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="project_id" value="{{ project.id }}">
+                                    <input type="hidden" name="status" value="Done">
+                                    <button type="submit" class="btn btn-link p-0 text-gradient-purple text-decoration-none small" title="Move to Done">
+                                        Complete <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4 text-secondary small">
+                    No active tasks in progress
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DONE Column -->
+    <div class="col-lg-4">
+        <div class="kanban-col">
+            <div class="kanban-header">
+                <span class="d-flex align-items-center">
+                    <span class="badge badge-done me-2 rounded-circle">&nbsp;</span> Done
+                </span>
+                <span class="badge bg-secondary-subtle text-white">{{ done_tasks|length }}</span>
+            </div>
+
+            {% if done_tasks %}
+                {% for task in done_tasks %}
+                    <div class="task-card">
+                        <div class="task-title text-decoration-line-through text-secondary">{{ task.title }}</div>
+                        {% if task.description %}
+                            <p class="task-desc text-secondary">{{ task.description }}</p>
+                        {% endif %}
+                        <div class="task-meta">
+                            <span>
+                                <i class="bi bi-calendar-check me-1"></i> Completed
+                            </span>
+                            <form action="{{ url_for('change_task_status', task_id=task.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="project_id" value="{{ project.id }}">
+                                <input type="hidden" name="status" value="In Progress">
+                                <button type="submit" class="btn btn-link p-0 text-secondary text-decoration-none small" title="Move back to In Progress">
+                                    <i class="bi bi-chevron-left"></i> Reopen
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-4 text-secondary small">
+                    No completed tasks
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Task -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal">
+            <div class="modal-header border-secondary-subtle">
+                <h5 class="modal-title fw-bold" id="addTaskModalLabel">Create New Task</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('add_task', project_id=project.id) }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="taskTitle" class="form-label text-secondary small">Task Title *</label>
+                        <input type="text" class="form-control" id="taskTitle" name="title" placeholder="Enter task title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDescription" class="form-label text-secondary small">Description</label>
+                        <textarea class="form-control" id="taskDescription" name="description" rows="3" placeholder="Task details..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskStatus" class="form-label text-secondary small">Initial Status</label>
+                        <select class="form-select" id="taskStatus" name="status">
+                            <option value="To Do" selected>To Do</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Done">Done</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="taskDueDate" class="form-label text-secondary small">Due Date</label>
+                        <input type="date" class="form-control" id="taskDueDate" name="due_date">
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary-subtle">
+                    <button type="button" class="btn btn-outline-glass" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Delete Project Confirmation -->
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal">
+            <div class="modal-header border-secondary-subtle">
+                <h5 class="modal-title text-danger fw-bold" id="deleteProjectModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Delete Project?
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the project <strong>{{ project.name }}</strong>?</p>
+                <p class="text-secondary small">This action is irreversible. All tasks and milestones associated with this project will be deleted permanently.</p>
+            </div>
+            <div class="modal-footer border-secondary-subtle">
+                <button type="button" class="btn btn-outline-glass" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('remove_project', project_id=project.id) }}" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
