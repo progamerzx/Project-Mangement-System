@@ -5,13 +5,14 @@ WORKDIR /app
 # Install system dependencies and Microsoft ODBC Driver 18
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    ca-certificates \
     gnupg \
     unixodbc \
     unixodbc-dev \
     g++ \
     && . /etc/os-release \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg \
-    && curl https://packages.microsoft.com/config/debian/$VERSION_ID/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
+    && echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/$VERSION_ID/prod bookworm main" > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
     && apt-get clean \
